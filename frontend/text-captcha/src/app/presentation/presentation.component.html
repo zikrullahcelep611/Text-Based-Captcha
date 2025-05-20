@@ -1,0 +1,12 @@
+<div class="question-card" *ngIf="question"> 
+    <h2>{{ question.questionText }}</h2> 
+    <ul> 
+        <li *ngFor="let option of question.options"> 
+            <label> <input type="radio" name="options" [value]="option.optionId" [checked]="selectedOptionId === option.optionId" (change)="selectOption(option.optionId)"> {{ option.optionText }} </label> 
+        </li> 
+    </ul> 
+</div>
+
+<div class="login-button-container">
+  <button routerLink="/login" class="btn btn-primary">Giriş Yap</button>
+</div>

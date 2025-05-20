@@ -1,0 +1,24 @@
+<div class="dashboard-container">
+  <!-- Sidebar Toggle Butonu -->
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    {{ isSidebarOpen ? '◄ Kapat' : '☰ Menü' }}
+  </button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" [ngClass]="{'sidebar-open': isSidebarOpen}">
+    <div class="sidebar-header">
+      <h3>Menü</h3>
+    </div>
+    <div class="sidebar-content">
+      <button class="sidebar-btn" routerLink="/register">Kayıt Ol</button>
+      <button class="sidebar-btn" routerLink="/question">Soru Ekle</button>
+      <button class="sidebar-btn" routerLink="/presentation">Sunum</button>
+    </div>
+  </div>
+
+  <!-- Ana İçerik -->
+  <div class="main-content" [ngClass]="{'main-content-shifted': isSidebarOpen}">
+    <h2>Hoş Geldiniz!</h2>
+    <p>Bu dashboard, uygulamanızın ana kontrol panelidir. Sol taraftaki menüden işlemleri seçebilirsiniz.</p>
+  </div>
+</div>

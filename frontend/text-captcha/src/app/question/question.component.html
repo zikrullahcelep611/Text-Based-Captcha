@@ -1,0 +1,25 @@
+<!-- question.component.html -->
+<form [formGroup]="questionForm" (ngSubmit)="onSubmit()">
+  <h2>Yeni Soru Ekle</h2>
+  
+  <label>Soru:</label>
+  <input type="text" formControlName="questionText" placeholder="Soru metni girin" />
+
+  <div formArrayName="options">
+    <div class="options-title">
+      <h3>Seçenekler</h3>
+    </div>
+    <div *ngFor="let option of options.controls; let i = index" [formGroupName]="i" class="option-item">
+      <div class="option-input">
+        <label>Şık {{ i + 1 }}:</label>
+        <input type="text" formControlName="optionText" placeholder="Şık metni" />
+      </div>
+      <div class="checkbox-container">
+        <input type="checkbox" formControlName="isCorrect" id="checkbox-{{i}}" (change)="setCorrectOption(i)" />
+        <label for="checkbox-{{i}}">Doğru cevap</label>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit">Soru Ekle</button>
+</form>
