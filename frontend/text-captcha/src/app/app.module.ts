@@ -12,6 +12,7 @@ import { RegisterComponent } from './register/register.component';
 import { AuthInterceptor } from './auth.interceptor';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { HomeComponent } from './home/home.component';
 
 
 @NgModule({
@@ -21,6 +22,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     PresentationComponent,
     RegisterComponent,
     DashboardComponent,
+    HomeComponent,
   ],
   imports: [
     BrowserModule,

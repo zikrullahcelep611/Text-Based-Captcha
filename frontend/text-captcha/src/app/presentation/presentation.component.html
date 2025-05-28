@@ -10,3 +10,8 @@
 <div class="login-button-container">
   <button routerLink="/login" class="btn btn-primary">Giriş Yap</button>
 </div>
+
+<div class="voice-answer-container" style="text-align:center; margin-top: 20px;">
+    <button class="btn btn-secondary" (click)="listenWithAzure()">Sesli Yanıtla</button>
+    <button class="btn btn-info" style="margin-left:10px;" (click)="readQuestionAndOptions()">Soruyu Dinle</button>
+</div>

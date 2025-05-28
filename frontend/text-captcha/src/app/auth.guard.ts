@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
     }
     
     // Kullanıcı giriş yapmamışsa login sayfasına yönlendir
-    this.router.navigate(['/login']);
+    this.router.navigate(['/home']);
     return false;
   }
 }
