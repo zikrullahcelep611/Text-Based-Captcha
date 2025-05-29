@@ -4,6 +4,7 @@ using Text_Captcha.Infrastructure.DbContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using Text_Captcha.Infrastructure.Entities;
 using Text_Captcha.Infrastructure.Repositories.Abstract;
 using Text_Captcha.Infrastructure.Repositories.Concrete;
@@ -13,12 +14,16 @@ using Text_Captcha.Service.Services.Concrete;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IRepository<Question>, Repository<Question>>();
 builder.Services.AddScoped<IRepository<Option>, Repository<Option>>();
 builder.Services.AddScoped<IRepository<Answer>, Repository<Answer>>();
+builder.Services.AddScoped<IRepository<VisitorScore>, Repository<VisitorScore>>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IOptionRepository<Option>, OptionRepository<Option>>();
-
+builder.Services.AddScoped<IVisitorScoreService, VisitorScoreService>();
+builder.Services.AddScoped<IIpAddressService, IpAddressService>();
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -68,6 +73,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
+{
+    var connectionStrings = builder.Configuration.GetConnectionString("Redis");
+    return ConnectionMultiplexer.Connect(connectionStrings);
+});
+
+builder.Services.AddScoped<IDatabase>(provider =>
+{
+    var connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
+    return connectionMultiplexer.GetDatabase();
+});
+
 builder.Services.AddAuthorization();
 
 WebApplication app = builder.Build();
@@ -83,7 +100,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAngularApp");
 app.MapControllers();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 

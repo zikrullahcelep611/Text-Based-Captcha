@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Text_Captcha.Infrastructure.DbContext;
 using Text_Captcha.Infrastructure.Repositories.Abstract;
@@ -47,4 +48,10 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<T> GetAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate);
+    }
+
 }

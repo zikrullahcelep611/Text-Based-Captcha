@@ -24,7 +24,7 @@ public class QuestionService : IQuestionService
         _optionRepository = optionRepository;
     }
 
-    public async Task<Question?> GetQuestion()
+    public async Task<Question?> GetRandomQuestionAsync()
     {
         return await _context.Questions.OrderBy(q => EF.Functions.Random())
             .FirstOrDefaultAsync();
@@ -111,5 +111,21 @@ public class QuestionService : IQuestionService
             }).ToList()
         };
         return responseDTO;
+    }
+
+    public async Task<string> GetQuestionAnswerWithQuestionId(int questionId)
+    {
+        var question = await _questionRepository.GetByIdAsync(questionId);
+        
+        foreach (var option in question.Options)
+        {
+            if (option.IsCorrect)
+            {
+                return option.OptionText;
+            }
+        }
+
+        //If there isn't true option return null
+        return null;
     }
 }

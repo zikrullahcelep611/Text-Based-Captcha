@@ -15,12 +15,44 @@ public class QuestionController : ControllerBase
     private readonly IRepository<Question> _questionRepository;
     private readonly IQuestionService _questionService;
     private readonly IRepository<Option> _optionRepository;
+    private readonly IVisitorScoreService _visitorScoreService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IIpAddressService _ipAddressService;
     
-    public QuestionController(IQuestionService questionService, IRepository<Option> optionRepository, IRepository<Question> questionRepository)
+    public QuestionController(IIpAddressService ipAddressService, IHttpContextAccessor httpContextAccessor, IVisitorScoreService visitorScoreService, IQuestionService questionService, IRepository<Option> optionRepository, IRepository<Question> questionRepository)
     {
         _questionService = questionService;
         _optionRepository = optionRepository;
         _questionRepository = questionRepository;
+        _visitorScoreService = visitorScoreService;
+        _httpContextAccessor = httpContextAccessor;
+        _ipAddressService = ipAddressService;
+    }
+
+    [HttpGet("Index")]
+    public async Task<ActionResult?> Index()
+    {
+        try
+        {
+            var ipAddress = _ipAddressService.GetCurrentIpAddress();
+            bool isCaptchaRequired = await _visitorScoreService.NeedsCaptchaAsync(ipAddress);
+
+            if (isCaptchaRequired)
+            {
+                var questionResponse = await GetQuestion();
+                return questionResponse.Result; //ActionResult'ı dön
+            }
+
+            return Ok(new
+            {
+                requiresCaptcha = false,
+                message = "Capctcha doğrulaması gerekir."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Hata oluştu: {ex.Message}");
+        }
     }
     
     [HttpGet("GetQuestion")]
@@ -28,7 +60,7 @@ public class QuestionController : ControllerBase
     {
         try
         {
-            var question = await _questionService.GetQuestion();
+            var question = await _questionService.GetRandomQuestionAsync();
 
             if (question == null)
                 return NotFound("Soru bulunamadı");
@@ -45,9 +77,10 @@ public class QuestionController : ControllerBase
                     IsCorrect = o.IsCorrect
                 }).ToList()
             };
-
+        
             return questionDto;
         }
+        
         catch (Exception ex)
         {
             return BadRequest($"Hata oluştu:{ex.Message}");
@@ -90,11 +123,18 @@ public class QuestionController : ControllerBase
     [HttpPost("CheckAnswer")]
     public async Task<IActionResult> CheckAnswer([FromBody] AnswerDTO model, int questionId)
     {
-        if (await _questionService.CheckAnswer(model, questionId))
+        var ipAddress = _ipAddressService.GetCurrentIpAddress();
+        bool isCorrect = await _questionService.CheckAnswer(model, questionId);
+        
+        if (isCorrect)
         {
+            await _visitorScoreService.UpdateScoreOnSuccessAsync(ipAddress);
             return Ok(new { success = true, message = "Doğrulama başarılı!" });
         }
-
-        return BadRequest(new { success = false, message = "Yanlış cavap lütfen tekrar deneyin." });
+        else
+        {
+            await _visitorScoreService.UpdateScoreOnFailureAsync(ipAddress);
+            return BadRequest(new { success = false, message = "Yanlış cavap lütfen tekrar deneyin." });
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Text_Captcha.Infrastructure.DbContext;
@@ -20,6 +21,11 @@ public class OptionRepository<T> : IOptionRepository<T>, IRepository<T> where T 
     public async Task<List<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();
+    }
+
+    public async Task<T> GetAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate);
     }
 
     public async Task<T> GetByIdAsync(int id)
