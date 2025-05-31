@@ -6,7 +6,10 @@ import { rejects } from "assert";
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 import { error } from "console";
 import { environment } from "../../environments/environment";
-
+import { CaptchaRequestAnswerDTO } from "../models/captcha-answer.model";
+import { CaptchaTokenResponse } from "../models/captcha-token.model";
+import { generate } from "rxjs";
+import { CaptchaVerificationResponse } from "../models/captcha-verification-model";
 
 @Component({
   selector: 'app-presentation',
@@ -19,14 +22,23 @@ export class PresentationComponent implements OnInit{
   question!: QuestionResponseDTO;
   selectedOptionId: number | null = null;
   isSpeaking: boolean = false;
+  token!: CaptchaTokenResponse;
+  captchaVerificationResponse!: CaptchaVerificationResponse;
 
   private azureKey = environment.azureKey;
   private azureRegion = environment.azureRegion;
 
   constructor(private questionService: QuestionService){}
 
+  //component açılır açılmazilk çalışacak metottur.
   ngOnInit(): void {
-    this.loadQuestion();
+    this.questionService.generateToken().subscribe({
+      next: (res) => {
+        this.token = res,
+        this.loadQuestionWithId();
+      },
+      error: (err) => console.error('Token alınamadı:', err)
+    });
   }
 
   loadQuestion(){
@@ -36,15 +48,57 @@ export class PresentationComponent implements OnInit{
     });
   }
 
+  loadQuestionWithId(){
+    this.questionService.getQuestionWithId(this.token.questionId).subscribe({
+      next: (res) => this.question = res,
+      error: (err) => console.error('Id ile soru alınamadı:', err)
+    });
+  }
+
   selectOption(optionId: number){
     this.selectedOptionId = optionId;
+    // const selectedOption = this.question.options.find(opt => opt.optionId === optionId);
+    // if(selectedOption?.isCorrect){
+    //   alert('Doğru cevap');
+    // }
+    // else{
+    //   alert('Yanlış cevap');
+    // }
+  }
+
+  getSelectedOption(optionId: number){
+    this.selectedOptionId = optionId;
     const selectedOption = this.question.options.find(opt => opt.optionId === optionId);
-    if(selectedOption?.isCorrect){
-      alert('Doğru cevap');
+
+    return selectedOption;
+  }
+
+  getToken(){
+    this.questionService.generateToken().subscribe({
+      next: (res) => this.token = res,
+      error: (err) => console.error('Token alınamadı:', err)
+    });
+  }
+
+  verifyCaptchaAnswer(){
+    if(!this.question){
+      alert('Soru yüklenmeden cevaplama yapılamaz.');
+      return;
     }
-    else{
-      alert('Yanlış cevap');
-    }
+    const selectedOption = this.getSelectedOption(this.selectedOptionId!);
+    const captchaAnswerRequestDto: CaptchaRequestAnswerDTO = {
+      tokenId: this.token.token,
+      answer: selectedOption ? selectedOption.optionText : ''
+    };
+
+    //Burayi yeniden dusunecegim.
+    this.questionService.verifyCaptchaAnswer(captchaAnswerRequestDto).subscribe({
+      next: (res) => {
+        this.captchaVerificationResponse = res;
+        alert(res.message);
+      },
+      error: (err) => console.error("Backend tarafında cevap doğrulama yapılamadı.", err)
+    });
   }
 
   speakWithAzure(text: string): Promise<void> {
