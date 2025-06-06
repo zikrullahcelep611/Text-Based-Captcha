@@ -1,43 +1,482 @@
+/* Register Container - Ana Wrapper */
 .container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animasyonlu arka plan */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Arka plan partikülleri */
+.container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 25% 75%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Register Form Card */
+.container form {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 50px 40px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 15px 25px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
   max-width: 500px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  position: relative;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
-.form-group {
-  margin-bottom: 15px;
+.container form:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.15),
+    0 20px 35px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.form-control {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+/* Başlık */
+.container h2 {
+  color: #2d3748;
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.btn-primary {
-  width: 100%;
-  padding: 10px;
+.container h2::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
 }
 
+/* Alert Messages */
 .alert {
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 4px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideInDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
 }
 
 .alert-success {
-  background-color: #d4edda;
-  color: #155724;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
 }
 
 .alert-danger {
-  background-color: #f8d7da;
-  color: #721c24;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
 
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+/* Label Stilleri */
+.form-group label {
+  display: block;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+
+/* Input Stilleri */
+.form-control {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #2d3748;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.1),
+    0 4px 20px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.form-control:focus + label {
+  color: #667eea;
+}
+
+.form-control::placeholder {
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+/* Input Hover Efekti */
+.form-control:hover:not(:focus) {
+  border-color: #cbd5e0;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Error Text */
 .text-danger {
-  font-size: 0.9em;
+  color: #e53e3e;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+  display: block;
+  animation: slideInUp 0.2s ease-out;
+  padding-left: 4px;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Invalid Input Stilleri */
+.form-control:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: #e53e3e;
+  background: rgba(255, 245, 245, 0.8);
+  box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.1);
+}
+
+/* İki Sütunlu Layout - Responsive */
+@media (min-width: 768px) {
+  .container form {
+    max-width: 600px;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .form-row .form-group {
+    flex: 1;
+  }
+}
+
+/* Register Button */
+.btn {
+  width: 100%;
+  padding: 18px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:disabled {
+  background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.btn-primary:disabled::before {
+  display: none;
+}
+
+/* Form Groups İçin Özel Stiller */
+.form-group:nth-child(3) .form-control,
+.form-group:nth-child(4) .form-control {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease, border-left-color 0.3s ease;
+}
+
+.form-group:nth-child(3) .form-control:focus,
+.form-group:nth-child(4) .form-control:focus {
+  border-left-color: #48bb78;
+}
+
+.form-group:nth-child(5) .form-control,
+.form-group:nth-child(6) .form-control,
+.form-group:nth-child(7) .form-control {
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease, border-left-color 0.3s ease;
+}
+
+.form-group:nth-child(5) .form-control:focus,
+.form-group:nth-child(6) .form-control:focus,
+.form-group:nth-child(7) .form-control:focus {
+  border-left-color: #f093fb;
+}
+
+/* Progress Bar Efekti */
+.container::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  z-index: 1000;
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 15px;
+  }
+  
+  .container form {
+    padding: 40px 30px;
+    max-width: 90%;
+    margin: 0;
+  }
+  
+  .container h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-control {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+  
+  .btn {
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container form {
+    padding: 30px 20px;
+    border-radius: 20px;
+  }
+  
+  .container h2 {
+    font-size: 24px;
+  }
+  
+  .form-control {
+    padding: 12px 16px;
+  }
+  
+  .btn {
+    padding: 14px 18px;
+  }
+}
+
+/* Loading Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn-primary:disabled::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Focus durumları erişilebilirlik için */
+.btn:focus,
+.form-control:focus {
+  outline: 2px solid rgba(102, 126, 234, 0.5);
+  outline-offset: 2px;
+}
+
+/* Floating Labels Efekti */
+.form-group {
+  position: relative;
+}
+
+.form-group label {
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.form-control:focus ~ label,
+.form-control:not(:placeholder-shown) ~ label {
+  transform: translateY(-8px) scale(0.85);
+  color: #667eea;
+}
+
+/* Koyu tema uyumluluğu */
+@media (prefers-color-scheme: dark) {
+  .container form {
+    background: rgba(45, 55, 72, 0.95);
+    color: #f7fafc;
+  }
+  
+  .container h2 {
+    color: #f7fafc;
+  }
+  
+  .form-group label {
+    color: #e2e8f0;
+  }
+  
+  .form-control {
+    background: rgba(74, 85, 104, 0.8);
+    border-color: #4a5568;
+    color: #f7fafc;
+  }
+  
+  .form-control:focus {
+    background: rgba(74, 85, 104, 0.95);
+  }
+  
+  .text-danger {
+    color: #fc8181;
+  }
+}
+
+/* Özel Animasyonlar */
+@keyframes formAppear {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.container form {
+  animation: formAppear 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Success State */
+.form-control.is-valid {
+  border-color: #48bb78;
+  background: rgba(245, 255, 245, 0.8);
+  box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.1);
+}
+
+.form-control.is-valid:focus {
+  box-shadow: 
+    0 0 0 4px rgba(72, 187, 120, 0.15),
+    0 4px 20px rgba(72, 187, 120, 0.1);
 }

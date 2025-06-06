@@ -28,6 +28,7 @@
 /* Sidebar */
 .sidebar {
   width: 0;
+  top: 0;
   overflow: hidden;
   background-color: #343a40;
   color: white;
@@ -37,11 +38,14 @@
 }
 
 .sidebar-open {
+  top: 0;
   width: 220px;
+  left: 0;
+  position: fixed;
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 60px 20px 1px 20px;
   background-color: #23272b;
   border-bottom: 1px solid #495057;
 }

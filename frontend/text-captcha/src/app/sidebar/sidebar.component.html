@@ -1,0 +1,18 @@
+<div class="sidebar-component">
+    <button class="toggle-btn" (click)="toggleSidebar()">
+        {{isSidebarOpen ? 'Kapat' : 'Menü'}}
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" [ngClass]="{'sidebar-open': isSidebarOpen}">
+        <div class="sidebar-header">
+        <h3>Menü</h3>
+        </div>
+        <div class="sidebar-content">
+        <button class="sidebar-btn" routerLink="/register" (click)="closeSidebar()">Kayıt Ol</button>
+        <button class="sidebar-btn" routerLink="/question" (click)="closeSidebar()">Soru Ekle</button>
+        <button class="sidebar-btn" routerLink="/presentation" (click)="closeSidebar()">Sunum</button>
+        <button class="sidebar-btn" routerLink="/report" (click)="closeSidebar()">Banlanan Ip Adresleri</button>
+        </div>
+    </div>
+</div>

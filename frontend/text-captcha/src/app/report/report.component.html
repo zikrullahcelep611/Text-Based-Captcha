@@ -1,0 +1,14 @@
+
+<div class="ip-list-container"> 
+
+    <div *ngIf="noBannedIps" class="ip-alert">
+        Banlanan IP adresi yok.
+    </div>
+
+    <ul *ngIf="bannedIps && bannedIps.length > 0" class="ip-list">
+        <li *ngFor="let ip of bannedIps" class="ip-list-item">
+            <span class="ip-icon">🔒</span>
+            <span class="ip-text">{{ip}}</span>
+        </li>
+    </ul>
+</div>

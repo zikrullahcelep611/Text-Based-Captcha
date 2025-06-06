@@ -3,8 +3,12 @@
   <h2>Yeni Soru Ekle</h2>
   
   <label>Soru:</label>
-  <input type="text" formControlName="questionText" placeholder="Soru metni girin" />
-
+  <textarea
+    formControlName = "questionText"
+    placeholder="Soru metni girin"
+    class="auto-expand"
+    rows="1"
+  ></textarea>
   <div formArrayName="options">
     <div class="options-title">
       <h3>Seçenekler</h3>

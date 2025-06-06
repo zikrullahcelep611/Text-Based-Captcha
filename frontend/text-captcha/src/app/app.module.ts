@@ -13,6 +13,10 @@ import { AuthInterceptor } from './auth.interceptor';
 import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { HomeComponent } from './home/home.component';
+import { CustomAlertComponent } from './shared/custom-alert/custom-alert.component';
+import { ReportComponent } from './report/report.component';
+import { LayoutComponent } from './layout/layout.component';
+import { SidebarComponent } from './sidebar/sidebar.component';
 
 
 @NgModule({
@@ -23,6 +27,10 @@ import { HomeComponent } from './home/home.component';
     RegisterComponent,
     DashboardComponent,
     HomeComponent,
+    CustomAlertComponent,
+    ReportComponent,
+    LayoutComponent,
+    SidebarComponent,
   ],
   imports: [
     BrowserModule,

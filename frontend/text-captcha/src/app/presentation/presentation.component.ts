@@ -10,6 +10,8 @@ import { CaptchaRequestAnswerDTO } from "../models/captcha-answer.model";
 import { CaptchaTokenResponse } from "../models/captcha-token.model";
 import { generate } from "rxjs";
 import { CaptchaVerificationResponse } from "../models/captcha-verification-model";
+import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-presentation',
@@ -24,21 +26,35 @@ export class PresentationComponent implements OnInit{
   isSpeaking: boolean = false;
   token!: CaptchaTokenResponse;
   captchaVerificationResponse!: CaptchaVerificationResponse;
+  showAlert = false;
+  alertMessage = '';
+  isBanned = false;
 
   private azureKey = environment.azureKey;
   private azureRegion = environment.azureRegion;
 
-  constructor(private questionService: QuestionService){}
+  constructor(private questionService: QuestionService, private router: Router){}
 
-  //component açılır açılmazilk çalışacak metottur.
   ngOnInit(): void {
     this.questionService.generateToken().subscribe({
       next: (res) => {
         this.token = res,
         this.loadQuestionWithId();
       },
-      error: (err) => console.error('Token alınamadı:', err)
+      error: (err) => {
+        if(err.status === 403){
+          this.alertMessage = "Çok fazla deneme yaptınız, daha sonra tekrar deneyin.";
+          this.showAlert = true;
+          this.isBanned = true
+        }
+        console.error('Token alınamadı:', err)
+      }
     });
+  }
+
+  onAlertClosed() {
+    this.showAlert = false;
+    this.router.navigate(['/dashboard']);
   }
 
   loadQuestion(){
@@ -73,12 +89,6 @@ export class PresentationComponent implements OnInit{
     return selectedOption;
   }
 
-  getToken(){
-    this.questionService.generateToken().subscribe({
-      next: (res) => this.token = res,
-      error: (err) => console.error('Token alınamadı:', err)
-    });
-  }
 
   verifyCaptchaAnswer(){
     if(!this.question){
@@ -100,56 +110,70 @@ export class PresentationComponent implements OnInit{
       error: (err) => console.error("Backend tarafında cevap doğrulama yapılamadı.", err)
     });
   }
-
+  
   speakWithAzure(text: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(this.azureKey, this.azureRegion);
-      speechConfig.speechSynthesisLanguage = 'tr-TR';
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-      const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+      return new Promise((resolve, reject) => {
+          const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(this.azureKey, this.azureRegion);
+          speechConfig.speechSynthesisLanguage = 'tr-TR';
+          speechConfig.speechSynthesisVoiceName = 'tr-TR-EmelNeural';
+          
+          const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+          const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
-      synthesizer.speakTextAsync(
-        text,
-        result => {
-          synthesizer.close();
-          resolve();
-        },
-        error => {
-          console.error('Azure TTS Hatası:', error);
-          synthesizer.close();
-          reject(error);
-        }
-      );
-    });
+          synthesizer.speakTextAsync(
+              text,
+              result => {
+                  if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                      synthesizer.close();
+                      resolve();
+                  } else {
+                      console.error('Konuşma tamamlanmadı:', result.errorDetails);
+                      synthesizer.close();
+                      reject(new Error(result.errorDetails));
+                  }
+              },
+              error => {
+                  console.error('Azure TTS Hatası:', error);
+                  synthesizer.close();
+                  reject(error);
+              }
+          );
+      });
   }
 
-  async readQuestionAndOptions(){
-    if(!this.question) return;
 
-    // Eğer konuşma devam ediyorsa, işlemi durdur
-    if(this.isSpeaking) return;
+  async readQuestionAndOptionsAsOneText(){
+    if(!this.question){
+      console.warn('Soru bulunamadı');
+      return;
+    }
+
+    if(this.isSpeaking){
+      console.warn('Konuşma zaten devam ediyor.');
+      return;
+    }
 
     try{
       this.isSpeaking = true;
-      
-      // Önce soruyu oku ve bitirmesini bekle
-      await this.speakWithAzure(this.question.questionText);
-      
-      // Soru bittikten sonra 1 saniye bekle
-      await new Promise(resolve => setTimeout(resolve, 5000));
 
-      // Şıkları sırayla oku
+      let fullText = this.question.questionText;
+
+      fullText += ". ";
+
       for(let i = 0; i < this.question.options.length; i++){
         const option = this.question.options[i];
-        // Her şık için await kullan - bir şık bitene kadar diğerine geçme
-        await this.speakWithAzure(`Şık ${i + 1}: ${option.optionText}`);
-        // Şıklar arası kısa bir duraklama
-        await new Promise(resolve => setTimeout(resolve, 800));
+        const optionLetter = String.fromCharCode(65 + i);
+
+        fullText += `Şık ${i + 1}: ${option.optionText}.`;
       }
+
+      console.log('Okucak tam metin:', fullText);
+
+      await this.speakWithAzure(fullText);
     }catch(error){
-      console.error('Azure ile sesli okuma sırasında hata:', error);
-    }finally{
-      this.isSpeaking = false;
+      console.error('Sesli okuma sırasında hata:', error);
+    } finally {
+        this.isSpeaking = false;
     }
   }
 

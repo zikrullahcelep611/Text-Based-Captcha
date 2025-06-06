@@ -5,6 +5,7 @@ import { CaptchaRequestAnswerDTO } from '../models/captcha-answer.model';
 import { CaptchaTokenResponse } from '../models/captcha-token.model';
 import { CaptchaVerificationResponse } from '../models/captcha-verification-model';
 import { CreateQuestionDTO } from '../models/question.model';
+import { BannedIps } from '../models/banned-ip.model';
 
 
 export interface OptionResponseDTO{
@@ -24,6 +25,7 @@ export interface QuestionResponseDTO{
 export class QuestionService {
   private apiUrl = 'http://localhost:5085/api/Question';
   private captchaControllerUrl = 'http://localhost:5085/api/Captcha';
+  private reportControllerUrl = 'http://localhost:5085/api/Report';
 
   constructor(private http: HttpClient) {}
 
@@ -36,14 +38,18 @@ export class QuestionService {
   }
 
   generateToken(): Observable<CaptchaTokenResponse> {
-    return this.http.get<CaptchaTokenResponse>(`${this.captchaControllerUrl}/generate`);
+    return this.http.get<CaptchaTokenResponse>(`${this.captchaControllerUrl}/Generate`);
   }
   
   verifyCaptchaAnswer(captchaRequestAnswerDto: CaptchaRequestAnswerDTO):Observable<CaptchaVerificationResponse>{
-    return this.http.post<CaptchaVerificationResponse>(`${this.captchaControllerUrl}/verify`, captchaRequestAnswerDto);
+    return this.http.post<CaptchaVerificationResponse>(`${this.captchaControllerUrl}/Verify`, captchaRequestAnswerDto);
   }
 
   createQuestion(question: CreateQuestionDTO): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/CreateQuestion`, question);
+  }
+
+  getBannedIpAddresses(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.reportControllerUrl}/Get`);
   }
 }
