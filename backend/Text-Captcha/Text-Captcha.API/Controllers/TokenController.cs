@@ -1,50 +1,56 @@
 using Microsoft.AspNetCore.Mvc;
-using StackExchange.Redis;
+using Text_Captcha.Infrastucture.DTOs;
+using Text_Captcha.Service.Services.Abstract;
 
 namespace Text_Captcha.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+
 public class TokenController : ControllerBase
 {
-    private readonly IDatabase _database;
+    private readonly ICaptchaTextTokenService _tokenService;
+    private readonly IIpAddressService _ipAddressService;
 
-    public TokenController(IDatabase database)
+
+    public TokenController(ICaptchaTextTokenService tokenService, IIpAddressService ipAddressService)
     {
-        _database = database;
+        _tokenService = tokenService;
+        _ipAddressService = ipAddressService;
     }
 
-    [HttpPost("set")]
-    public async Task<IActionResult> SetValue(string key, string value, int expireSeconds = 3600)
+    [HttpGet("generate")]
+    public async Task<IActionResult> GenerateToken()
     {
-        await _database.StringSetAsync(key, value, TimeSpan.FromSeconds(expireSeconds));
-        return Ok($"Key '{key}' set successfully");
-    }
-
-    [HttpGet("get/{key}")]
-    public async Task<IActionResult> GetValue(string key)
-    {
-        var value = await _database.StringGetAsync(key);
-
-        if (!value.HasValue)
+        string ipAddress = _ipAddressService.GetCurrentIpAddress();
+        if (string.IsNullOrEmpty(ipAddress))
         {
-            return NotFound($"Key '{key} not found");
+            return BadRequest("Invalid ip address");
         }
+        
+        try
+        {
+            var tokenResponse = await _tokenService.GenerateTokenAsync(ipAddress);
 
-        return Ok(new { Key = key, Value = value.ToString() });
+            return Ok(tokenResponse);
+        }
+        catch(Exception ex)
+        {
+            return StatusCode(403, "Ip address is banned, please try again later");
+        }
     }
 
-    [HttpDelete("delete/{key}")]
-    public async Task<IActionResult> DeleteValue(string key)
+    [HttpPost("verify")]
+    public async Task<IActionResult> VerifyCaptchaAnswer([FromBody] CaptchaTextRequestAnswerDTO captchaRequestAnswerDto)
     {
-        var deleted = await _database.KeyDeleteAsync(key);
-        return Ok($"Key {key} deleted: {deleted}");
-    }
+        bool isCorrect = await _tokenService.VerifyCaptchaAnswerAsync(captchaRequestAnswerDto);
 
-    [HttpGet("ttl/{key}")]
-    public async Task<IActionResult> GetTTL(string key)
-    {
-        var ttl = await _database.KeyTimeToLiveAsync(key);
-        return Ok(new { Key = key, TTL = ttl?.TotalSeconds ?? -1 });
+        var response = new CaptchaVerificationResponse
+        {
+            Success = isCorrect,
+            Message = isCorrect ? "Captcha verification is success" : "Invalid captcha answer"
+        };
+
+        return Ok(response);
     }
 }

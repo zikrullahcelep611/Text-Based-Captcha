@@ -1,5 +1,7 @@
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
+using Microsoft.Extensions.Configuration;
+using Text_Captcha.Infrastructure.DbContext;
 using Text_Captcha.Infrastructure.Entities;
 using Text_Captcha.Infrastructure.Repositories.Abstract;
 using Text_Captcha.Infrastucture.DTOs;
@@ -7,39 +9,48 @@ using Text_Captcha.Service.Services.Abstract;
 
 namespace Text_Captcha.Service.Services.Concrete;
 
-public class CaptchaTokenService : ICaptchaTokenService
+public class CaptchaTextTokenService : ICaptchaTextTokenService
 {
     private readonly IConfiguration _configuration;
-    private readonly ICaptchaTokenRepository<CaptchaToken> _tokenRepository;
-    private readonly IQuestionService _questionService;
+    private readonly ICaptchaTextTokenRepository<CaptchaTextToken> _captchaTextTokenRepository;
+    private readonly ICaptchaTextService _captchaTextService;
     private readonly IIpAddressService _ipAddressService;
     private readonly IDatabase _redisDatabase;
 
-    public CaptchaTokenService(IDatabase redisDatabase, IIpAddressService ipAddressService,
-        ICaptchaTokenRepository<CaptchaToken> tokenRepository, IQuestionService questionService)
+    public CaptchaTextTokenService(IDatabase redisDatabase, IIpAddressService ipAddressService,
+        ICaptchaTextTokenRepository<CaptchaTextToken> captchaTextTokenRepository, ICaptchaTextService captchaTextService)
     {
-        _tokenRepository = tokenRepository;
-        _questionService = questionService;
+        _captchaTextTokenRepository = captchaTextTokenRepository;
+        _captchaTextService = captchaTextService;
         _ipAddressService = ipAddressService;
         _redisDatabase = redisDatabase;
     }
 
-    public async Task<CaptchaTokenResponse> GenerateTokenAsync(string ipAddress)
+    /*
+    public class CaptchaTokenResponseDTO
     {
-        
+        public string Token { get; set; }
+        public DateTime ExpiresIn { get; set; }
+        public int CaptchaTextId { get; set; }
+        public bool IsUsed { get; set; }
+    }
+    */
+    
+    public async Task<CaptchaTokenResponseDTO> GenerateTokenAsync(string ipAddress)
+    {
         if (await _redisDatabase.KeyExistsAsync($"banned:{ipAddress}"))
         {
             throw new InvalidOperationException("IP address is banned. Please try again later.");
         }
-        
+
         try
         {
-            if(!await _redisDatabase.KeyExistsAsync($"refresh:{ipAddress}"))
+            if (!await _redisDatabase.KeyExistsAsync($"refresh:{ipAddress}"))
             {
                 await _redisDatabase.StringSetAsync($"refresh:{ipAddress}", 0, TimeSpan.FromHours(24));
             }
-           
-            int refreshCount = (int) await _redisDatabase.StringIncrementAsync($"refresh:{ipAddress}");
+
+            int refreshCount = (int)await _redisDatabase.StringIncrementAsync($"refresh:{ipAddress}");
 
             if (refreshCount >= 50)
             {
@@ -47,43 +58,42 @@ public class CaptchaTokenService : ICaptchaTokenService
                 throw new InvalidOperationException("Too many refresh attempts. IP banned for 24 hours.");
             }
 
-            var question = await _questionService.GetRandomQuestionAsync();
-            var token = new CaptchaToken
+            var textCaptcha = await _captchaTextService.GetRandomCaptchaTextAsync();
+
+
+            var token = new CaptchaTextToken
             {
-                CaptchaTokenId = Guid.NewGuid().ToString(),
+                CaptchaTextTokenId = Guid.NewGuid().ToString(),
                 CreatedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(10),
                 IsUsed = false,
                 IpAddress = ipAddress,
                 Status = CaptchaStatus.Active,
-                QuestionId = question.QuestionId
+                CaptchaTextId = textCaptcha.Id
             };
 
-            await _tokenRepository.SaveTokenAsync(token);
+            await _captchaTextTokenRepository.SaveTokenAsync(token);
 
-            var tokenResponse = new CaptchaTokenResponse
+            var tokenResponse = new CaptchaTokenResponseDTO
             {
-                Token = token.CaptchaTokenId,
+                Token = token.CaptchaTextTokenId,
                 ExpiresIn = token.ExpiresAt,
-                QuestionId = token.QuestionId,
+                CaptchaTextId = token.CaptchaTextId,
                 IsUsed = false
             };
 
-            Console.WriteLine("Bu kod calisti");
-
             return tokenResponse;
         }
-
         catch (Exception ex)
         {
             throw new Exception("Token oluşturma sırasında hata oluştu.", ex);
         }
     }
 
-    public async Task<bool> VerifyCaptchaAnswerAsync(CaptchaRequestAnswerDTO captchaRequestAnswerDto)
+    public async Task<bool> VerifyCaptchaAnswerAsync(CaptchaTextRequestAnswerDTO model)
     {
         var ipAddress = _ipAddressService.GetCurrentIpAddress();
-        
+
         if (string.IsNullOrEmpty(ipAddress))
         {
             throw new ArgumentException("IP address cannot be null or empty.");
@@ -93,8 +103,8 @@ public class CaptchaTokenService : ICaptchaTokenService
         {
             throw new InvalidOperationException("IP address is banned. Please try again later.");
         }
-        
-        var token = await _tokenRepository.GetTokenByIdAsync(captchaRequestAnswerDto.TokenId);
+
+        var token = await _captchaTextTokenRepository.GetTokenByIdAsync(model.TokenId);
         
         if (token == null)
         {
@@ -115,21 +125,24 @@ public class CaptchaTokenService : ICaptchaTokenService
         {
             throw new InvalidOperationException("Token has expired");
         }
-        
-        string correctAnswer = await _questionService.GetQuestionAnswerWithQuestionId(token.QuestionId);
-        if (captchaRequestAnswerDto.Answer == correctAnswer)
+
+        List<string> correctAnswers = await _captchaTextService.GetCaptchaAnswerWithCaptchaId(token.CaptchaTextId);
+
+        bool areEqual = correctAnswers.OrderBy(x => x).SequenceEqual(model.AnswerWords.OrderBy((x => x)));
+
+        if (areEqual)
         {
             token.IsUsed = true;
             token.Status = CaptchaStatus.Completed;
-            await _tokenRepository.UpdateTokenAsync(token);
+            await _captchaTextTokenRepository.UpdateTokenAsync(token);
             return true;
         }
-
+        
         if (!await _redisDatabase.KeyExistsAsync($"answer:{ipAddress}"))
         {
             await _redisDatabase.StringSetAsync($"answer:{ipAddress}", 0, TimeSpan.FromHours(24));
         }
-
+        
         int answerAttemptCount = (int) await _redisDatabase.StringIncrementAsync($"answer:{ipAddress}");
 
         if (answerAttemptCount >= 4)
@@ -138,17 +151,5 @@ public class CaptchaTokenService : ICaptchaTokenService
         }
         
         return false;
-    }
-
-    public async Task<int> GetRefreshCount(string refreshKey)
-    {
-        var refreshCountValue = await _redisDatabase.StringGetAsync(refreshKey);
-        int refreshCount = 0;
-        if (refreshCountValue.HasValue && int.TryParse(refreshCountValue.ToString(), out var count))
-        {
-            refreshCount = count;
-        }
-
-        return refreshCount;
     }
 }

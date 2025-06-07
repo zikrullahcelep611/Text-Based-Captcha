@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
+using Text_Captcha.API.Extensions;
 using Text_Captcha.Infrastructure.Entities;
 using Text_Captcha.Infrastructure.Repositories.Abstract;
 using Text_Captcha.Infrastructure.Repositories.Concrete;
@@ -16,33 +17,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IRepository<Question>, Repository<Question>>();
-builder.Services.AddScoped<IRepository<Option>, Repository<Option>>();
-builder.Services.AddScoped<IRepository<Answer>, Repository<Answer>>();
-builder.Services.AddScoped<IRepository<VisitorScore>, Repository<VisitorScore>>();
-builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IOptionRepository<Option>, OptionRepository<Option>>();
-builder.Services.AddScoped<IVisitorScoreService, VisitorScoreService>();
-builder.Services.AddScoped<IIpAddressService, IpAddressService>();
-
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services
+    .AddApplicationServices(builder.Configuration)
+    .AddDatabaseServices(builder.Configuration)
+    .AddRedisServices(builder.Configuration)
+    .AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
-builder.Services.AddIdentityCore<User>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequiredLength = 6;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-  
-builder.Services.AddDbContext<ApplicationDbContext>(options => 
-    options.UseLazyLoadingProxies().UseNpgsql(connectionString));
 
 builder.Services.AddCors(options =>
 {
@@ -54,37 +37,6 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-//JWT Settings
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-    };
-});
-
-builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
-{
-    var connectionStrings = builder.Configuration.GetConnectionString("Redis");
-    return ConnectionMultiplexer.Connect(connectionStrings);
-});
-
-builder.Services.AddScoped<IDatabase>(provider =>
-{
-    var connectionMultiplexer = provider.GetService<IConnectionMultiplexer>();
-    return connectionMultiplexer.GetDatabase();
-});
-
 builder.Services.AddAuthorization();
 
 WebApplication app = builder.Build();
@@ -93,9 +45,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
 }
-
 
 app.UseCors("AllowAngularApp");
 app.MapControllers();

@@ -54,6 +54,12 @@ public class QuestionController : ControllerBase
             return BadRequest($"Hata oluştu: {ex.Message}");
         }
     }
+
+    [HttpGet("GetQuestionWithId/{questionId}")]
+    public async Task<ActionResult<QuestionResponseDTO>> GetQuestionWithId(int questionId)
+    {
+        return await _questionService.GetQuestionWithIdAsync(questionId);
+    } 
     
     [HttpGet("GetQuestion")]
     public async Task<ActionResult<QuestionResponseDTO>>GetQuestion()

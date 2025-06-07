@@ -6,6 +6,7 @@ namespace Text_Captcha.Service.Services.Abstract;
 public interface IQuestionService
 {
     Task<Question> GetRandomQuestionAsync();
+    Task<QuestionResponseDTO> GetQuestionWithIdAsync(int questionId);
     Task<bool> CheckAnswer(AnswerDTO model, int questionId);
     Task<QuestionResponseDTO> CreateQuestion(CreateQuestionDTO model);
     Task<string> GetQuestionAnswerWithQuestionId(int questionId);

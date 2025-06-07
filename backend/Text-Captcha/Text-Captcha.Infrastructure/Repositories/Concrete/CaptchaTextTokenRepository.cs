@@ -5,29 +5,24 @@ using Text_Captcha.Infrastructure.Repositories.Abstract;
 
 namespace Text_Captcha.Infrastructure.Repositories.Concrete;
 
-public class CaptchaTokenRepository<CaptchaToken> : ICaptchaTokenRepository<CaptchaToken> where CaptchaToken : class
+public class CaptchaTextTokenRepository<CaptchaTextToken> : ICaptchaTextTokenRepository<CaptchaTextToken> where CaptchaTextToken : class 
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly DbSet<CaptchaToken> _dbSet;
-
-    public CaptchaTokenRepository(ApplicationDbContext dbContext)
+    private readonly DbSet<CaptchaTextToken> _dbSet;
+    
+    public CaptchaTextTokenRepository(ApplicationDbContext dbContext)
     {
         _dbContext = dbContext;
-        _dbSet = _dbContext.Set<CaptchaToken>();
+        _dbSet = _dbContext.Set<CaptchaTextToken>();
     }
     
-    public async Task SaveTokenAsync(CaptchaToken token)
+    public async Task SaveTokenAsync(CaptchaTextToken token)
     {
         _dbSet.AddAsync(token);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteTokenAsync(CaptchaToken token)
-    {
-        
-    }
-
-    public async Task<CaptchaToken> GetTokenByIdAsync(string tokenId)
+    public async Task<CaptchaTextToken> GetTokenByIdAsync(string tokenId)
     {
         try
         {
@@ -39,10 +34,9 @@ public class CaptchaTokenRepository<CaptchaToken> : ICaptchaTokenRepository<Capt
         }
     }
 
-    public async Task UpdateTokenAsync(CaptchaToken token)
+    public async Task UpdateTokenAsync(CaptchaTextToken token)
     {
         _dbSet.Update(token);
         await _dbContext.SaveChangesAsync();
     }
-    
 }

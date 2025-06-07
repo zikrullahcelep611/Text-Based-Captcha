@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Text_Captcha.Infrastructure.DbContext;
@@ -12,9 +13,11 @@ using Text_Captcha.Infrastructure.DbContext;
 namespace Text_Captcha.Infrastucture.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250607100913_YeniMigration")]
+    partial class YeniMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,35 +202,6 @@ namespace Text_Captcha.Infrastucture.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CaptchaTexts", "identity");
-                });
-
-            modelBuilder.Entity("Text_Captcha.Infrastructure.Entities.CaptchaTextToken", b =>
-                {
-                    b.Property<string>("CaptchaTextTokenId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("CaptchaTextId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("CaptchaTextTokenId");
-
-                    b.ToTable("CaptchaTextTokens", "identity");
                 });
 
             modelBuilder.Entity("Text_Captcha.Infrastructure.Entities.CaptchaToken", b =>

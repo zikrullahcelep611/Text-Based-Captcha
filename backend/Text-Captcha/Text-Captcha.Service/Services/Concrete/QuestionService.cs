@@ -30,6 +30,27 @@ public class QuestionService : IQuestionService
             .FirstOrDefaultAsync();
     }
 
+    public async Task<QuestionResponseDTO> GetQuestionWithIdAsync(int questionId)
+    {
+        var question = await _questionRepository.GetByIdAsync(questionId);
+
+        var questionResponseDto = new QuestionResponseDTO
+        {
+
+            QuestionId = question.QuestionId,
+            QuestionText = question.QuestionText,
+            Options = question.Options.Select(o => new OptionResponseDTO
+            {
+                OptionId = o.OptionId,
+                QuestionId = o.QuestionId,
+                OptionText = o.OptionText,
+                IsCorrect = o.IsCorrect
+            }).ToList()
+        };
+
+        return questionResponseDto;
+    }
+    
     public async Task<bool> CheckAnswer(AnswerDTO model, int questionId)
     {
         var question = await _questionRepository.GetByIdAsync(questionId);
@@ -71,29 +92,6 @@ public class QuestionService : IQuestionService
 
         // Add options to the question
         question.Options = options;
-
-        // Save options
-        /*foreach (var option in options)
-        {
-            try
-            {
-                await _optionRepository.CreateAsync(option);
-            }
-            catch (DbUpdateException ex)
-            {
-                // Tüm hata zincirini logla
-                var currentException = ex;
-                int level = 0;
-    
-                while (currentException != null)
-                {
-                    Console.WriteLine($"Exception Level {level}: {currentException.Message}");
-                    currentException = (DbUpdateException)currentException.InnerException;
-                    level++;
-                }
-                throw;
-            }
-        }*/
 
         await _optionRepository.CreateRangeAsync(options);
 
