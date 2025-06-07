@@ -1,0 +1,87 @@
+<div class="captcha-management-container">
+      <h2>CAPTCHA Yönetimi</h2>
+      
+      <form (ngSubmit)="onSubmit()" #captchaForm="ngForm">
+        
+        <!-- Soru Metni -->
+        <div class="form-group">
+          <label for="questionText">Soru Metni:</label>
+          <input 
+            type="text" 
+            id="questionText"
+            [(ngModel)]="captchaData.questionText"
+            name="questionText"
+            placeholder="Örn: Cümlenin öznesi kimdir?"
+            required
+            class="form-control">
+        </div>
+
+        <!-- İçerik Metni -->
+        <div class="form-group">
+          <label for="contentText">İçerik Metni:</label>
+          <textarea
+            id="contentText"
+            name="contentText"
+            [(ngModel)]="captchaData.contentText"
+            (input)="onContentTextChange()"
+            placeholder="Örn: Ali dün akşam geldi."
+            required
+            rows="4"
+            class="form-control"></textarea>
+        </div>
+
+        <!-- Metin İşaretleme Alanı -->
+        <div class="form-group" *ngIf="captchaData.contentText">
+          <label>Doğru Cevapları İşaretleyin:</label>
+          <div class="text-selection-area">
+            <p class="selectable-text">
+              <span 
+                *ngFor="let word of words; let i = index"
+                [class.selected]="isWordSelected(word, i)"
+                (click)="toggleWordSelection(word, i)"
+                class="word">
+                {{word}}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Seçilen Kelimeler -->
+        <div class="form-group" *ngIf="captchaData.answerWords.length > 0">
+          <label>Seçilen Doğru Cevaplar:</label>
+          <div class="selected-words">
+            <span 
+              *ngFor="let answer of captchaData.answerWords; let i = index"
+              class="selected-word-tag">
+              {{answer}}
+              <button 
+                type="button" 
+                (click)="removeAnswer(i)"
+                class="remove-btn">×</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Submit Butonu -->
+        <div class="form-group">
+          <button 
+            type="submit" 
+            [disabled]="!captchaForm.valid || captchaData.answerWords.length === 0 || isLoading"
+            class="submit-btn">
+            <span *ngIf="isLoading">Kaydediliyor...</span>
+            <span *ngIf="!isLoading">CAPTCHA Oluştur</span>
+          </button>
+        </div>
+
+        <!-- Başarı Mesajı -->
+        <div *ngIf="successMessage" class="success-message">
+          {{successMessage}}
+        </div>
+
+        <!-- Hata Mesajı -->
+        <div *ngIf="errorMessage" class="error-message">
+          {{errorMessage}}
+        </div>
+
+      </form>
+</div>

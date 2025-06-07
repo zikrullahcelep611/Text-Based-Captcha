@@ -9,9 +9,13 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { HomeComponent } from './home/home.component';
 import { ReportComponent } from './report/report.component';
 import { LayoutComponent } from './layout/layout.component';
+import { CreateCaptchaComponent } from './create-captcha/create-captcha.component';
+import { CaptchaComponent } from './captcha/captcha.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent }, 
+  { path: 'createCaptcha', component: CreateCaptchaComponent},
+  { path: 'captcha', component: CaptchaComponent},
   {
     path: '',
     component: LayoutComponent,

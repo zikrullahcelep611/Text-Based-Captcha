@@ -1,0 +1,83 @@
+<div class="captcha-container">
+  <!-- Ban Uyarısı -->
+  <div *ngIf="showAlert" class="alert alert-warning">
+    <p>{{ alertMessage }}</p>
+    <button (click)="onAlertClosed()" class="btn btn-primary">Tamam</button>
+  </div>
+
+  <!-- Ana Captcha Alanı -->
+  <div *ngIf="!isBanned && captcha" class="captcha-content">
+    <div class="captcha-header">
+      <h2>Güvenlik Doğrulaması</h2>
+      <p class="instruction">Aşağıdaki soruyu okuyun ve metinde doğru kelimeleri seçin:</p>
+    </div>
+
+    <!-- Soru -->
+    <div class="question-section">
+      <h3>{{ captcha.captchaTextQuestion }}</h3>
+    </div>
+
+    <!-- Metin Seçim Alanı -->
+    <div class="text-selection-area">
+      <div class="selectable-text">
+        <span 
+          *ngFor="let word of words; let i = index"
+          [class.selected]="isWordSelected(word, i)"
+          (click)="toggleWordSelection(word, i)"
+          class="word">
+          {{ word }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Seçilen Kelimeler -->
+    <div class="selected-answers" *ngIf="answerWords.length > 0">
+      <h4>Seçilen Kelimeler:</h4>
+      <div class="answer-tags">
+        <span 
+          *ngFor="let word of answerWords" 
+          class="answer-tag">
+          {{ word }}
+          <button 
+            type="button" 
+            (click)="removeSelectedWord(word)"
+            class="remove-btn">×</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- Kontrol Butonları -->
+    <div class="control-buttons">
+      <button 
+        (click)="verifyCaptchaAnswer()"
+        [disabled]="answerWords.length === 0 || isVerifying"
+        class="btn btn-verify">
+        <span *ngIf="isVerifying">Kontrol Ediliyor...</span>
+        <span *ngIf="!isVerifying">Cevabı Kontrol Et</span>
+      </button>
+      
+      <button 
+        (click)="resetCaptcha()"
+        [disabled]="isVerifying"
+        class="btn btn-reset">
+        Yeni Soru Al
+      </button>
+    </div>
+
+    <!-- Sonuç Mesajı -->
+    <div *ngIf="verificationResult" class="result-message">
+      <div [class]="verificationResult.success ? 'success' : 'error'">
+        <i [class]="verificationResult.success ? 'icon-success' : 'icon-error'"></i>
+        <span>{{ verificationResult.message }}</span>
+      </div>
+      <div *ngIf="verificationResult.success" class="redirect-info">
+        2 saniye sonra yönlendirileceksiniz...
+      </div>
+    </div>
+  </div>
+
+  <!-- Yükleniyor Durumu -->
+  <div *ngIf="!captcha && !isBanned" class="loading">
+    <p>Captcha yükleniyor...</p>
+  </div>
+</div>

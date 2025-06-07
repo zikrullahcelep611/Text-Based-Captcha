@@ -4,7 +4,7 @@ import { BrowserModule, provideClientHydration, withEventReplay } from '@angular
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { QuestionComponent } from './question/question.component';
 import { PresentationComponent } from './presentation/presentation.component';
@@ -17,6 +17,8 @@ import { CustomAlertComponent } from './shared/custom-alert/custom-alert.compone
 import { ReportComponent } from './report/report.component';
 import { LayoutComponent } from './layout/layout.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { CaptchaComponent } from './captcha/captcha.component';
+import { CreateCaptchaComponent } from './create-captcha/create-captcha.component';
 
 
 @NgModule({
@@ -31,13 +33,16 @@ import { SidebarComponent } from './sidebar/sidebar.component';
     ReportComponent,
     LayoutComponent,
     SidebarComponent,
+    CaptchaComponent,
+    CreateCaptchaComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     ReactiveFormsModule,
     HttpClientModule,
-    LoginComponent
+    LoginComponent,
+    FormsModule
   ],
   providers: [
     provideClientHydration(withEventReplay()),
