@@ -25,16 +25,6 @@ public class CaptchaTextTokenService : ICaptchaTextTokenService
         _ipAddressService = ipAddressService;
         _redisDatabase = redisDatabase;
     }
-
-    /*
-    public class CaptchaTokenResponseDTO
-    {
-        public string Token { get; set; }
-        public DateTime ExpiresIn { get; set; }
-        public int CaptchaTextId { get; set; }
-        public bool IsUsed { get; set; }
-    }
-    */
     
     public async Task<CaptchaTokenResponseDTO> GenerateTokenAsync(string ipAddress)
     {
@@ -52,7 +42,7 @@ public class CaptchaTextTokenService : ICaptchaTextTokenService
 
             int refreshCount = (int)await _redisDatabase.StringIncrementAsync($"refresh:{ipAddress}");
 
-            if (refreshCount >= 50)
+            if (refreshCount >= 5)
             {
                 await _redisDatabase.StringSetAsync($"banned:{ipAddress}", "banned", TimeSpan.FromHours(2));
                 throw new InvalidOperationException("Too many refresh attempts. IP banned for 24 hours.");

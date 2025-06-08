@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Text_Captcha.Infrastructure.Entities;
+using Text_Captcha.Infrastructure.Repositories.Abstract;
 using Text_Captcha.Infrastucture.DTOs;
 using Text_Captcha.Service.Services.Abstract;
 
@@ -8,49 +11,45 @@ namespace Text_Captcha.API.Controllers;
 [Route("api/[controller]")]
 public class CaptchaController : ControllerBase
 {
-
-    private readonly ICaptchaTokenService _tokenService;
+    private readonly IRepository<CaptchaText> _captchaTextRepository;
+    private readonly ICaptchaTextService _captchaTextService; 
     private readonly IIpAddressService _ipAddressService;
 
-
-    public CaptchaController(ICaptchaTokenService tokenService, IIpAddressService ipAddressService)
+    public CaptchaController(IRepository<CaptchaText> captchaTextRepository, ICaptchaTextService captchaTextService
+        ,IIpAddressService ipAddressService)
     {
-        _tokenService = tokenService;
+        _captchaTextService = captchaTextService;
         _ipAddressService = ipAddressService;
+        _captchaTextRepository = captchaTextRepository;
     }
-
-    [HttpGet("generate")]
-    public async Task<IActionResult> GenerateToken()
+    
+    [HttpGet("GetCaptchaWithId/{captchaTextId}")]
+    public async Task<ActionResult<CaptchaTextResponseDTO>> GetQuestionWithId(int captchaTextId)
     {
-        string ipAddress = _ipAddressService.GetCurrentIpAddress();
-        if (string.IsNullOrEmpty(ipAddress))
-        {
-            return BadRequest("Invalid ip address");
-        }
         
+        var captchaResponse = await _captchaTextService.GetCaptchaTextWithIdAsync(captchaTextId);
+        return Ok(captchaResponse);
+    } 
+    
+    [Authorize]
+    [HttpPost("CreateCaptcha")]
+    public async Task<IActionResult> CreateQuestion([FromBody] CreateCaptchaTextDTO model)
+    {
         try
         {
-            var tokenResponse = await _tokenService.GenerateTokenAsync(ipAddress);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var questionResponse = await _captchaTextService.CreateCaptchaText(model);
 
-            return Ok(tokenResponse);
+            return Ok(new {message = "Captcha başarılı bir şekilde oluşturuldu."});
         }
-        catch(Exception ex)
+
+        catch (Exception ex)
         {
-            return StatusCode(403, "Ip address is banned, please try again later");
+            return BadRequest($"Soru oluşturulurken hata oluştu: {ex.Message}");
         }
-    }
-
-    [HttpPost("verify")]
-    public async Task<IActionResult> VerifyCaptchaAnswer([FromBody]CaptchaRequestAnswerDTO captchaRequestAnswerDto)
-    {
-        bool isCorrect = await _tokenService.VerifyCaptchaAnswerAsync(captchaRequestAnswerDto);
-
-        var response = new CaptchaVerificationResponse
-        {
-            Success = isCorrect,
-            Message = isCorrect ? "Captcha verification is success" : "Invalid captcha answer"
-        };
-
-        return Ok(response);
     }
 }
